@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-vl7i*iyt-lw@es=5+hr&xt7t^xjzqlpm2cnn-aq7q8c$2o4ot3'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'debug_toolbar',
+    'django_bootstrap5',
 ]
 
 MIDDLEWARE = [
@@ -142,3 +143,6 @@ INTERNAL_IPS = [
 ]
 
 CSRF_FAILURE_VIEW = 'pages.views.csrf_failure'
+
+LOGIN_REDIRECT_URL = 'blog:index'
+LOGIN_URL = 'login'
