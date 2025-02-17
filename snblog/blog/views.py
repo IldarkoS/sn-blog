@@ -1,15 +1,21 @@
 from django.shortcuts import render, get_object_or_404, get_list_or_404, redirect, HttpResponseRedirect
 from django.utils import timezone
-from django.views.generic import ListView, DetailView, UpdateView
+from django.views.generic import ListView, DetailView, UpdateView, CreateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.urls import reverse, reverse_lazy
+from django.core.exceptions import PermissionDenied
 
 from .models import Post, Category, User
-from .forms import UserEditForm
+from .forms import UserEditForm, CreatePostForm
 
-class PostListView(ListView):
+
+class PostMixin:
     model = Post
+
+
+class PostListView(ListView, PostMixin):
     ordering = ('id',)
     paginate_by = 10
     queryset = Post.objects.filter(
@@ -25,7 +31,6 @@ def post_detail(request, pk):
     post = get_object_or_404(
         Post.objects.select_related('author').select_related('category').select_related('location'),
         pk=pk,
-        pub_date__lte=timezone.now(),
     )
     context = {
         "post": post
@@ -87,5 +92,42 @@ def update_user_profile(request):
     context = {'form': form}
     if form.is_valid():
         form.save()
-        return redirect(f'/profile/{form.instance.username}')
+        return redirect(f'/profile/{form.instance.username}/')
     return render(request, template, context)
+
+
+class CreatePostView(LoginRequiredMixin, CreateView):
+    template_name = 'blog/create.html'
+    form_class = CreatePostForm
+
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('blog:profile', kwargs={'username': self.request.user.username})
+
+
+class UpdatePostView(LoginRequiredMixin, PostMixin, UpdateView):
+    template_name = 'blog/create.html'
+    form_class = CreatePostForm
+
+    def dispatch(self, request, *args, **kwargs):
+        instance = get_object_or_404(Post, pk=kwargs['pk'])
+        if instance.author != request.user:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+
+class DeletePostView(LoginRequiredMixin, PostMixin, DeleteView):
+    template_name = 'blog/create.html'
+
+    def get_success_url(self):
+        return reverse('blog:profile', kwargs={'username': self.request.user.username})
+
+    def dispatch(self, request, *args, **kwargs):
+        instance = get_object_or_404(Post, pk=kwargs['pk'])
+        if instance.author != request.user:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)

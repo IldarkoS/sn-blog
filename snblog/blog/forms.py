@@ -1,7 +1,7 @@
 from django import forms
 
 
-from .models import User
+from .models import User, Post
 
 
 class UserEditForm(forms.ModelForm):
@@ -9,3 +9,13 @@ class UserEditForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ('username','email', 'first_name', 'last_name')
+
+
+class CreatePostForm(forms.ModelForm):
+    
+    class Meta:
+        model = Post
+        fields = ('title', 'text', 'category', 'location', 'pub_date', 'image')
+        widgets = {
+            'pub_date': forms.DateInput(attrs={'type': 'date'})
+        }
