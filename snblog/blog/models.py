@@ -98,6 +98,11 @@ class Post(models.Model):
         verbose_name='Местоположение',
         related_name="posts"
     )
+    image = models.ImageField(
+        verbose_name='Фото',
+        upload_to='post_images',
+        blank=True,
+    )
     is_published = models.BooleanField(
         verbose_name="Опубликовано",
         default=True,
